@@ -1,0 +1,1 @@
+print("be name Khoda :)")
