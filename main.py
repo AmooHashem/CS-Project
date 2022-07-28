@@ -7,8 +7,8 @@ from tqdm import tqdm
 
 # inputs
 input_requests_rate = 30
-simulation_duration = 2880
-instances_counts = [20, 10, 10, 10, 10, 10, 10]
+simulation_duration = 28800
+instances_counts = [1, 1, 1, 2, 5, 3, 2]
 timeout = [25, 30, 25, 30, 30, 40, 20]
 
 # consts:
@@ -294,12 +294,12 @@ for section in sections:
     my_sum += section.queue.sum_of_queue_length_during_time / current_time
 average_queues_length = my_sum / len(sections)
 
-index = 1
-print(fully_done_requests[index].start_process_time)
-print(fully_done_requests[index].enter_queue_time)
-print(fully_done_requests[index].end_process_time)
-print(fully_done_requests[index].path)
-print(fully_done_requests[index].needed_times)
+# index = 1
+# print(fully_done_requests[index].start_process_time)
+# print(fully_done_requests[index].enter_queue_time)
+# print(fully_done_requests[index].end_process_time)
+# print(fully_done_requests[index].path)
+# print(fully_done_requests[index].needed_times)
 
 print("Average queues length:", average_queues_length)
 
@@ -327,8 +327,16 @@ for i in range(len(sections)):
     sections_utilization[i] = sections[i].type.name + ": " + str(sections[i].time_in_use / current_time * 100)
 print("Utilization of each service:", sections_utilization)
 
-print("Total Percentage of timed out requests:")
-print("Percentage of timed out requests by type:")
+# calculating timeout
+request_types_dropped_count = [0] * 7
+for req in all_requests:
+    if req.is_timed_out:
+        request_types_dropped_count[req.type.value] += 1
+request_types_dropped_percentage = [0] * 7
+for i in range(len(request_types_dropped_count)):
+    request_types_dropped_percentage[i] = request_types_dropped_count[i] / request_types_count[i] * 100
+print("Total Percentage of timed out requests:", len(dropped_requests) / len(all_requests) * 100)
+print("Percentage of timed out requests by type:", request_types_dropped_percentage)
 
 print("Done requests:", len(fully_done_requests))
 print("Dropped requests:", len(dropped_requests))
