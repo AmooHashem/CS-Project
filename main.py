@@ -9,6 +9,7 @@ from tqdm import tqdm
 input_requests_rate = 30
 simulation_duration = 2880
 instances_counts = [2, 1, 1, 1, 1, 1, 1]
+timeout = [25, 30, 25, 30, 30, 40, 20]
 
 # consts:
 current_time = 0
@@ -107,6 +108,7 @@ class Request:
         self.path = path
         self.needed_times = [math.ceil(
             get_sample_exponential(get_section(path[i]).service_time_average)) for i in range(len(path))]
+        self.timeout = timeout[request_type.value]
 
 
 class Queue:
@@ -139,6 +141,8 @@ class Section:
         self.queue: Queue = Queue()
         self.in_progress: List[Request] = []
         self.time_in_use = 0
+        self.timeout = False
+        self.error = False
 
     def handle_requests(self):
         self.handle_in_queue_requests()
@@ -156,6 +160,7 @@ class Section:
 
     def handle_in_progress_requests(self):
         for request in self.in_progress:
+            # todo: check timeout
             request.needed_times[request.step] -= 1
             if request.needed_times[request.step] == 0:
                 self.make_request_done(request)
