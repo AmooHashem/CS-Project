@@ -119,7 +119,6 @@ class Request:
 class Queue:
     def __init__(self):
         self.current_requests: List[Request] = []
-        # TODO: calculate
         self.sum_of_queue_length_during_time = 0
 
     def calculate_queue_info(self):
@@ -290,12 +289,28 @@ while len(fully_done_requests) + len(dropped_requests) != all_requests_count:
 
 # test
 
+# calculate average queues length
+my_sum = 0
+for section in sections:
+    my_sum += section.queue.sum_of_queue_length_during_time / current_time
+average_queues_length = my_sum / len(sections)
+
 index = 1
 print(fully_done_requests[index].start_process_time)
 print(fully_done_requests[index].enter_queue_time)
 print(fully_done_requests[index].end_process_time)
 print(fully_done_requests[index].path)
 print(fully_done_requests[index].needed_times)
+
+print("Average queues length:", average_queues_length)
+
+print("Average total requests queue delay:")
+print("Average requests queue delay by request type:")
+
+print("Utilization of each service:")
+
+print("Total Percentage of timed out requests:")
+print("Percentage of timed out requests by type:")
 
 print("Done requests:", len(fully_done_requests))
 print("Dropped requests:", len(dropped_requests))
