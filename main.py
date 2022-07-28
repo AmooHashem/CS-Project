@@ -17,9 +17,9 @@ services_time_duration = [8, 5, 6, 9, 12, 2, 3]
 # variables and lists
 current_time = 0
 sections = []
+all_requests = []
 fully_done_requests = []
 dropped_requests = []
-all_requests_count = 0
 
 # util
 
@@ -262,8 +262,7 @@ def take_turn():
     new_requests = [Request(generate_random_request_type())
                     for i in range(input_requests_rate)]
 
-    global all_requests_count
-    all_requests_count += len(new_requests)
+    all_requests.extend(new_requests)
 
     for request in new_requests:
         put_request_in_section(request)
@@ -282,7 +281,7 @@ initiate()
 for i in range(simulation_duration):
     take_turn()
 
-while len(fully_done_requests) + len(dropped_requests) != all_requests_count:
+while len(fully_done_requests) + len(dropped_requests) != len(all_requests):
     handle_all_sections()
 
     current_time += 1
@@ -304,8 +303,24 @@ print(fully_done_requests[index].needed_times)
 
 print("Average queues length:", average_queues_length)
 
-print("Average total requests queue delay:")
-print("Average requests queue delay by request type:")
+# calculating queue delays
+request_types_total_delay = [0] * 7
+request_types_count = [0] * 7
+for req in all_requests:
+    req: Request
+    req_delay_sum = 0
+    for i in range(len(req.enter_queue_time)):
+        req_delay_sum += req.start_process_time[i] - req.enter_queue_time[i]
+    request_types_count[req.type.value] += 1
+    request_types_total_delay[req.type.value] += req_delay_sum
+
+request_types_average_delay = [0] * 7
+for i in range(len(request_types_count)):
+    request_types_average_delay[i] = request_types_total_delay[i] / request_types_count[i]
+
+print("Average total requests queue delay:", sum(request_types_total_delay) / len(all_requests))
+print("Average requests queue delay by request type:", request_types_average_delay)
+
 
 print("Utilization of each service:")
 
