@@ -91,6 +91,7 @@ def get_section(section_type: SectionsTypes):
 
 class Request:
     def __init__(self, request_type: RequestsTypes):
+        self.step = 0
         self.create_time = current_time
         self.enter_queue_time = []
         self.start_process_time = []
@@ -148,8 +149,8 @@ class Section:
 
     def handle_in_progress_requests(self):
         for request in self.in_progress:
-            request.needed_times[0] -= 1
-            if request.needed_times[0] == 0:
+            request.needed_times[request.step] -= 1
+            if request.needed_times[request.step] == 0:
                 self.make_request_done(request)
 
     def add_request_to_section(self, request: Request):
@@ -175,12 +176,12 @@ class Section:
             if not subsection.is_available:
                 subsection.is_available = True
                 break
-        request.needed_times.pop(0)
-        request.path.pop(0)
-        if len(request.needed_times) == 0:
+
+        request.step += 1
+        if len(request.needed_times) == request.step:
             fully_done_requests.append(request)
         else:
-            next_section = get_section(request.path[0])
+            next_section = get_section(request.path[request.step])
             next_section.add_request_to_section(request)
 
 ###############################
@@ -205,7 +206,7 @@ def initiate():
 
 
 def put_request_in_section(request: Request):
-    section = get_section(request.path[0])
+    section = get_section(request.path[request.step])
     section.add_request_to_section(request)
 
 
