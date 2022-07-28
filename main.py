@@ -16,11 +16,13 @@ services_time_duration = [8, 5, 6, 9, 12, 2, 3]
 sections = []
 fully_done_requests = []
 
-# utils
+# util
 
 
 def get_sample_uniform():
     return random.uniform()
+
+# util
 
 
 def get_sample_exponential(lambda_value):
@@ -66,6 +68,8 @@ class RequestsTypes(Enum):
     TYPE6 = 5
     TYPE7 = 6
 
+# util
+
 
 def get_request_type():
     random_number = random.rand()
@@ -83,6 +87,8 @@ def get_request_type():
         return RequestsTypes.TYPE6
     if random_number <= 1:
         return RequestsTypes.TYPE7
+
+# util
 
 
 def get_section(section_type: SectionsTypes):
@@ -107,14 +113,12 @@ class Queue:
     def __init__(self):
         self.current_requests: List[Request] = []
         self.total_sum_of_queue_length = 0
-        self.total_number_of_requests = 0
 
     def calculate_queue_info(self):
         self.total_sum_of_queue_length += len(self.current_requests)
 
     def add_request_to_queue(self, request: Request):
         self.current_requests.append(request)
-        self.total_number_of_requests += 1
 
     def remove_request(self):
         first_request = self.current_requests[0]
@@ -134,10 +138,13 @@ class Section:
             instances_counts[section_type.value])]
         self.queue: Queue = Queue()
         self.in_progress: List[Request] = []
+        self.time_in_use = 0
 
     def handle_requests(self):
         self.handle_in_queue_requests()
         self.handle_in_progress_requests()
+        if len(self.in_progress) > 0:
+            self.time_in_use += 1
 
     def handle_in_queue_requests(self):
         self.queue.calculate_queue_info()
@@ -212,14 +219,20 @@ def put_request_in_section(request: Request):
 
 def take_turn():
     global current_time
-    current_requests = [Request(get_request_type())
-                        for i in range(input_requests_rate)]
+    new_requests = [Request(get_request_type())
+                    for i in range(input_requests_rate)]
 
-    for request in current_requests:
+    for request in new_requests:
         put_request_in_section(request)
 
-    for section in sections:
-        section.handle_requests()
+    # from end to start
+    sections[3].handle_requests()
+    sections[4].handle_requests()
+    sections[0].handle_requests()
+    sections[1].handle_requests()
+    sections[2].handle_requests()
+    sections[5].handle_requests()
+    sections[6].handle_requests()
 
     print_logs()
 
@@ -227,6 +240,8 @@ def take_turn():
 
 
 #######################
+
+# execution
 
 initiate()
 
@@ -236,10 +251,10 @@ for i in range(simulation_duration):
 while len(fully_done_requests) < simulation_duration * input_requests_rate:
     for section in sections:
         section.handle_requests()
-
     print_logs()
-
     current_time += 1
+
+# test
 
 index = 1000
 print(fully_done_requests[index].start_process_time)
