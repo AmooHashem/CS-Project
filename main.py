@@ -12,8 +12,10 @@ instances_counts = [2, 1, 1, 1, 1, 1, 1]
 timeout = [25, 30, 25, 30, 30, 40, 20]
 
 # consts:
-current_time = 0
 services_time_duration = [8, 5, 6, 9, 12, 2, 3]
+
+# variables and lists
+current_time = 0
 sections = []
 fully_done_requests = []
 
@@ -72,7 +74,7 @@ class RequestsTypes(Enum):
 # util
 
 
-def get_request_type():
+def generate_random_request_type():
     random_number = random.rand()
     if random_number < 0.2:
         return RequestsTypes.TYPE1
@@ -114,10 +116,11 @@ class Request:
 class Queue:
     def __init__(self):
         self.current_requests: List[Request] = []
-        self.total_sum_of_queue_length = 0
+        # TODO: calculate
+        self.sum_of_queue_length_during_time = 0
 
     def calculate_queue_info(self):
-        self.total_sum_of_queue_length += len(self.current_requests)
+        self.sum_of_queue_length_during_time += len(self.current_requests)
 
     def add_request_to_queue(self, request: Request):
         self.current_requests.append(request)
@@ -160,7 +163,7 @@ class Section:
 
     def handle_in_progress_requests(self):
         for request in self.in_progress:
-            # todo: check timeout
+            # TODO: check timeout
             request.needed_times[request.step] -= 1
             if request.needed_times[request.step] == 0:
                 self.make_request_done(request)
@@ -224,7 +227,7 @@ def put_request_in_section(request: Request):
 
 def take_turn():
     global current_time
-    new_requests = [Request(get_request_type())
+    new_requests = [Request(generate_random_request_type())
                     for i in range(input_requests_rate)]
 
     for request in new_requests:
