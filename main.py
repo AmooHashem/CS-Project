@@ -5,6 +5,11 @@ from numpy import random
 from enum import Enum
 from tqdm import tqdm
 
+# IN THE NAME OF GOD
+
+# Seyyed Alireza Hashemi - Mohammad Sadegh Salimi
+# Student numbers: 97102622 - 97101829
+
 # inputs
 input_requests_rate = 30
 simulation_duration = 28800
@@ -339,6 +344,6 @@ print("Total Percentage of timed out requests:", len(dropped_requests) / len(all
 print("Percentage of timed out requests by type:", request_types_dropped_percentage)
 
 print("Done requests:", len(fully_done_requests))
-print("Dropped requests:", len(dropped_requests))
+print("Timed out requests:", len(dropped_requests))
 
 print("Simulation time:", current_time)
