@@ -321,8 +321,11 @@ for i in range(len(request_types_count)):
 print("Average total requests queue delay:", sum(request_types_total_delay) / len(all_requests))
 print("Average requests queue delay by request type:", request_types_average_delay)
 
-
-print("Utilization of each service:")
+# calculating sections utilization
+sections_utilization = [0] * 7
+for i in range(len(sections)):
+    sections_utilization[i] = sections[i].type.name + ": " + str(sections[i].time_in_use / current_time * 100)
+print("Utilization of each service:", sections_utilization)
 
 print("Total Percentage of timed out requests:")
 print("Percentage of timed out requests by type:")
