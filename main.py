@@ -8,7 +8,7 @@ from tqdm import tqdm
 # inputs
 input_requests_rate = 30
 simulation_duration = 2880
-instances_counts = [2, 1, 1, 1, 1, 1, 1]
+instances_counts = [20, 10, 10, 10, 10, 10, 10]
 timeout = [25, 30, 25, 30, 30, 40, 20]
 
 # consts:
@@ -18,6 +18,8 @@ services_time_duration = [8, 5, 6, 9, 12, 2, 3]
 current_time = 0
 sections = []
 fully_done_requests = []
+dropped_requests = []
+all_requests_count = 0
 
 # util
 
@@ -111,6 +113,7 @@ class Request:
         self.needed_times = [math.ceil(
             get_sample_exponential(get_section(path[i]).service_time_average)) for i in range(len(path))]
         self.timeout = timeout[request_type.value]
+        self.is_timed_out = False
 
 
 class Queue:
@@ -144,7 +147,6 @@ class Section:
         self.queue: Queue = Queue()
         self.in_progress: List[Request] = []
         self.time_in_use = 0
-        self.timeout = False
         self.error = False
 
     def handle_requests(self):
@@ -163,7 +165,11 @@ class Section:
 
     def handle_in_progress_requests(self):
         for request in self.in_progress:
-            # TODO: check timeout
+            # check timeout
+            if current_time - request.create_time > request.timeout:
+                self.drop_request(request)
+                continue
+            # end of check timeout
             request.needed_times[request.step] -= 1
             if request.needed_times[request.step] == 0:
                 self.make_request_done(request)
@@ -199,6 +205,20 @@ class Section:
             next_section = get_section(request.path[request.step])
             next_section.add_request_to_section(request)
 
+    def drop_request(self, request: Request):
+        self.in_progress.remove(request)
+        request.end_process_time.append(current_time)
+        for subsection in self.subsections:
+            if not subsection.is_available:
+                subsection.is_available = True
+                break
+
+        request.is_timed_out = True
+        dropped_requests.append(request)
+
+
+
+
 ###############################
 
 
@@ -225,14 +245,7 @@ def put_request_in_section(request: Request):
     section.add_request_to_section(request)
 
 
-def take_turn():
-    global current_time
-    new_requests = [Request(generate_random_request_type())
-                    for i in range(input_requests_rate)]
-
-    for request in new_requests:
-        put_request_in_section(request)
-
+def handle_all_sections():
     # from end to start
     sections[3].handle_requests()
     sections[4].handle_requests()
@@ -243,6 +256,20 @@ def take_turn():
     sections[6].handle_requests()
 
     print_logs()
+
+
+def take_turn():
+    global current_time
+    new_requests = [Request(generate_random_request_type())
+                    for i in range(input_requests_rate)]
+
+    global all_requests_count
+    all_requests_count += len(new_requests)
+
+    for request in new_requests:
+        put_request_in_section(request)
+
+    handle_all_sections()
 
     current_time += 1
 
@@ -256,17 +283,21 @@ initiate()
 for i in range(simulation_duration):
     take_turn()
 
-while len(fully_done_requests) < simulation_duration * input_requests_rate:
-    for section in sections:
-        section.handle_requests()
-    print_logs()
+while len(fully_done_requests) + len(dropped_requests) != all_requests_count:
+    handle_all_sections()
+
     current_time += 1
 
 # test
 
-index = 1000
+index = 1
 print(fully_done_requests[index].start_process_time)
 print(fully_done_requests[index].enter_queue_time)
 print(fully_done_requests[index].end_process_time)
 print(fully_done_requests[index].path)
 print(fully_done_requests[index].needed_times)
+
+print("Done requests:", len(fully_done_requests))
+print("Dropped requests:", len(dropped_requests))
+
+print("Simulation time:", current_time)
